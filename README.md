@@ -136,14 +136,7 @@ movie-reviews-app/
 </tr>
 <tr>
 <td align="center">
-<img src="public/placeholder-poster.svg" width="200" alt="Mobile View"/>
-</td>
-<td align="center">
-<img src="public/placeholder-poster.svg" width="400" alt="Desktop View"/>
-</td>
-</tr>
-</table>
-</div>
+
 
 ## 🛠 Development
 
