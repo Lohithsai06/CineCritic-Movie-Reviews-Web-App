@@ -1,51 +1,78 @@
 "use client";
 
-import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { Upload, X } from 'lucide-react';
-import type { Movie } from '@/types/movie';
-import { addMovie, updateMovie } from '@/lib/movieService';
-import Image from 'next/image';
+import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { Upload, X } from "lucide-react";
+import type { Movie } from "@/types/movie";
+import { addMovie, updateMovie } from "@/lib/movieService";
+import Image from "next/image";
 
 interface AdminMovieFormProps {
   initialData?: Movie;
   isEdit?: boolean;
 }
 
-const genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Crime', 'Thriller'];
-const languages = ['English', 'Hindi', 'Telugu', 'Tamil', 'Malayalam', 'Kannada'];
-const censorRatings = ['U', 'U/A', 'A'] as const;
+const genres = [
+  "Action",
+  "Comedy",
+  "Drama",
+  "Horror",
+  "Sci-Fi",
+  "Crime",
+  "Thriller",
+];
+const languages = [
+  "English",
+  "Hindi",
+  "Telugu",
+  "Tamil",
+  "Malayalam",
+  "Kannada",
+];
+const censorRatings = ["U", "U/A", "A"] as const;
 
-export default function AdminMovieForm({ initialData, isEdit = false }: AdminMovieFormProps) {
+export default function AdminMovieForm({
+  initialData,
+  isEdit = false,
+}: AdminMovieFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>(initialData?.posterUrl || '');
-  
+  const [imagePreview, setImagePreview] = useState<string>(
+    initialData?.posterUrl || ""
+  );
+
   const [formData, setFormData] = useState({
-    title: initialData?.title || '',
+    title: initialData?.title || "",
     genres: initialData?.genres || [],
     languages: initialData?.languages || [],
-    censor: initialData?.censor || 'U',
+    censor: (initialData?.censor || "U") as "U" | "U/A" | "A",
     rating: initialData?.rating || 0,
-    review: initialData?.review || ''
+    review: initialData?.review || "",
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof typeof formData | 'poster', string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof typeof formData | "poster", string>>
+  >({});
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setErrors(prev => ({ ...prev, poster: 'Image size should be less than 5MB' }));
+        setErrors((prev) => ({
+          ...prev,
+          poster: "Image size should be less than 5MB",
+        }));
         return;
       }
-      setErrors(prev => ({ ...prev, poster: undefined }));
+      setErrors((prev) => ({ ...prev, poster: undefined }));
       setSelectedImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        if (typeof reader.result === "string") {
+          setImagePreview(reader.result);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -53,13 +80,16 @@ export default function AdminMovieForm({ initialData, isEdit = false }: AdminMov
 
   const validate = () => {
     const newErrors: typeof errors = {};
-    if (!formData.title) newErrors.title = 'Title is required';
-    if (!formData.genres.length) newErrors.genres = 'Select at least one genre';
-    if (!formData.languages.length) newErrors.languages = 'Select at least one language';
-    if (!imagePreview && !selectedImage) newErrors.poster = 'Poster is required';
-    if (!formData.review) newErrors.review = 'Review is required';
-    if (formData.rating < 1 || formData.rating > 5) newErrors.rating = 'Rating must be between 1 and 5';
-    
+    if (!formData.title) newErrors.title = "Title is required";
+    if (!formData.genres.length) newErrors.genres = "Select at least one genre";
+    if (!formData.languages.length)
+      newErrors.languages = "Select at least one language";
+    if (!imagePreview && !selectedImage)
+      newErrors.poster = "Poster is required";
+    if (!formData.review) newErrors.review = "Review is required";
+    if (formData.rating < 1 || formData.rating > 5)
+      newErrors.rating = "Rating must be between 1 and 5";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -71,112 +101,145 @@ export default function AdminMovieForm({ initialData, isEdit = false }: AdminMov
     setIsLoading(true);
     try {
       const posterUrl = imagePreview;
-      
+
       if (isEdit && initialData?.id) {
         await updateMovie(initialData.id, { ...formData, posterUrl });
       } else {
         await addMovie({ ...formData, posterUrl });
       }
-      router.push('/admin/dashboard');
+      router.push("/admin/dashboard");
       router.refresh();
     } catch (error) {
-      console.error('Error saving movie:', error);
-      alert('Failed to save movie');
+      console.error("Error saving movie:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const toggleSelection = (field: 'genres' | 'languages', value: string) => {
+  const toggleSelection = (field: "genres" | "languages", value: string) => {
     const current = formData[field];
     const updated = current.includes(value)
-      ? current.filter(item => item !== value)
+      ? current.filter((item) => item !== value)
       : [...current, value];
     setFormData({ ...formData, [field]: updated });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl mx-auto bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl p-6">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-8 max-w-4xl mx-auto bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl p-6"
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left Column */}
         <div className="space-y-6">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-200 mb-2">Title</label>
+            <label className="block text-sm font-medium text-gray-200 mb-2">
+              Title
+            </label>
             <input
               type="text"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               className="w-full px-4 py-2 bg-gray-700/50 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
               placeholder="Enter movie title"
             />
-            {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
+            {errors.title && (
+              <p className="mt-1 text-sm text-red-500">{errors.title}</p>
+            )}
           </div>
 
           {/* Genres */}
           <div>
-            <label className="block text-sm font-medium text-gray-200 mb-2">Genres</label>
+            <label className="block text-sm font-medium text-gray-200 mb-2">
+              Genres
+            </label>
             <div className="flex flex-wrap gap-2">
               {genres.map((genre) => (
                 <button
                   key={genre}
                   type="button"
-                  onClick={() => toggleSelection('genres', genre)}
+                  onClick={() => toggleSelection("genres", genre)}
                   className={`px-3 py-1 rounded-full text-sm transition-colors ${
                     formData.genres.includes(genre)
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600'
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-700/50 text-gray-300 hover:bg-gray-600"
                   }`}
                 >
                   {genre}
                 </button>
               ))}
             </div>
-            {errors.genres && <p className="mt-1 text-sm text-red-500">{errors.genres}</p>}
+            {errors.genres && (
+              <p className="mt-1 text-sm text-red-500">{errors.genres}</p>
+            )}
           </div>
 
           {/* Languages */}
           <div>
-            <label className="block text-sm font-medium text-gray-200 mb-2">Languages</label>
+            <label className="block text-sm font-medium text-gray-200 mb-2">
+              Languages
+            </label>
             <div className="flex flex-wrap gap-2">
               {languages.map((lang) => (
                 <button
                   key={lang}
                   type="button"
-                  onClick={() => toggleSelection('languages', lang)}
+                  onClick={() => toggleSelection("languages", lang)}
                   className={`px-3 py-1 rounded-full text-sm transition-colors ${
                     formData.languages.includes(lang)
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600'
+                      ? "bg-green-600 text-white"
+                      : "bg-gray-700/50 text-gray-300 hover:bg-gray-600"
                   }`}
                 >
                   {lang}
                 </button>
               ))}
             </div>
-            {errors.languages && <p className="mt-1 text-sm text-red-500">{errors.languages}</p>}
+            {errors.languages && (
+              <p className="mt-1 text-sm text-red-500">{errors.languages}</p>
+            )}
           </div>
 
           {/* Rating and Censor Rating */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-200 mb-2">Rating</label>
+              <label className="block text-sm font-medium text-gray-200 mb-2">
+                Rating
+              </label>
               <input
                 type="number"
                 min="1"
                 max="5"
                 step="0.1"
                 value={formData.rating}
-                onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  setFormData({
+                    ...formData,
+                    rating: isNaN(value) ? 0 : value,
+                  });
+                }}
                 className="w-full px-4 py-2 bg-gray-700/50 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
               />
-              {errors.rating && <p className="mt-1 text-sm text-red-500">{errors.rating}</p>}
+              {errors.rating && (
+                <p className="mt-1 text-sm text-red-500">{errors.rating}</p>
+              )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-200 mb-2">Censor Rating</label>
+              <label className="block text-sm font-medium text-gray-200 mb-2">
+                Censor Rating
+              </label>
               <select
                 value={formData.censor}
-                onChange={(e) => setFormData({ ...formData, censor: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    censor: e.target.value as "U" | "U/A" | "A",
+                  })
+                }
                 className="w-full px-4 py-2 bg-gray-700/50 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
               >
                 {censorRatings.map((rating) => (
@@ -193,7 +256,9 @@ export default function AdminMovieForm({ initialData, isEdit = false }: AdminMov
         <div className="space-y-6">
           {/* Movie Poster */}
           <div>
-            <label className="block text-sm font-medium text-gray-200 mb-2">Movie Poster</label>
+            <label className="block text-sm font-medium text-gray-200 mb-2">
+              Movie Poster
+            </label>
             <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-700/50 border-2 border-dashed border-gray-600 hover:border-blue-500 transition-colors">
               {imagePreview ? (
                 <div className="relative w-full h-full group">
@@ -207,10 +272,10 @@ export default function AdminMovieForm({ initialData, isEdit = false }: AdminMov
                     <button
                       type="button"
                       onClick={() => {
-                        setImagePreview('');
+                        setImagePreview("");
                         setSelectedImage(null);
                         if (fileInputRef.current) {
-                          fileInputRef.current.value = '';
+                          fileInputRef.current.value = "";
                         }
                       }}
                       className="p-2 bg-red-600 rounded-full hover:bg-red-700 transition-colors"
@@ -238,20 +303,28 @@ export default function AdminMovieForm({ initialData, isEdit = false }: AdminMov
               onChange={handleImageChange}
               className="hidden"
             />
-            {errors.poster && <p className="mt-1 text-sm text-red-500">{errors.poster}</p>}
+            {errors.poster && (
+              <p className="mt-1 text-sm text-red-500">{errors.poster}</p>
+            )}
           </div>
 
           {/* Review */}
           <div>
-            <label className="block text-sm font-medium text-gray-200 mb-2">Review</label>
+            <label className="block text-sm font-medium text-gray-200 mb-2">
+              Review
+            </label>
             <textarea
               value={formData.review}
-              onChange={(e) => setFormData({ ...formData, review: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, review: e.target.value })
+              }
               rows={8}
               className="w-full px-4 py-2 bg-gray-700/50 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none"
               placeholder="Write your review..."
             />
-            {errors.review && <p className="mt-1 text-sm text-red-500">{errors.review}</p>}
+            {errors.review && (
+              <p className="mt-1 text-sm text-red-500">{errors.review}</p>
+            )}
           </div>
         </div>
       </div>
@@ -265,8 +338,19 @@ export default function AdminMovieForm({ initialData, isEdit = false }: AdminMov
         >
           {isLoading ? (
             <>
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <svg
+                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
                 <path
                   className="opacity-75"
                   fill="currentColor"
@@ -276,7 +360,7 @@ export default function AdminMovieForm({ initialData, isEdit = false }: AdminMov
               Saving...
             </>
           ) : (
-            'Save Movie'
+            "Save Movie"
           )}
         </button>
       </div>

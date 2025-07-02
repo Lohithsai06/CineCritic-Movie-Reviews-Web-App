@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -13,40 +13,60 @@ import { useRouter } from "next/navigation";
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [movies, setMovies] = useState<Array<Required<Movie>>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const loadMovies = async () => {
+  const loadMovies = useCallback(async () => {
     try {
       const data = await getAllMovies();
-      setMovies(data);
-    } catch (error) {
-      console.error("Error loading movies:", error);
-      alert("Failed to load movies");
+      // Filter out any movies without required fields
+      const validMovies = data.filter(
+        (movie): movie is Required<Movie> =>
+          movie.id !== undefined &&
+          movie.title !== undefined &&
+          movie.genres !== undefined &&
+          movie.languages !== undefined &&
+          movie.censor !== undefined &&
+          movie.rating !== undefined &&
+          movie.posterUrl !== undefined &&
+          movie.review !== undefined &&
+          movie.createdAt !== undefined
+      );
+      setMovies(validMovies);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load movies";
+      console.error("Error loading movies:", err);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
       router.push("/admin/login");
       return;
     }
-    loadMovies();
-  }, [loading, user, router]);
+    if (!loading && user) {
+      loadMovies();
+    }
+  }, [loading, user, router, loadMovies]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this movie?")) return;
-
+    if (!id) return;
     try {
+      setError(null); // Clear any previous errors
       setDeletingId(id);
       await deleteMovie(id);
       setMovies(movies.filter((movie) => movie.id !== id));
-    } catch (error) {
-      console.error("Error deleting movie:", error);
-      alert("Failed to delete movie");
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to delete movie";
+      console.error("Error deleting movie:", err);
+      setError(errorMessage);
     } finally {
       setDeletingId(null);
     }
@@ -95,6 +115,11 @@ export default function AdminDashboard() {
 
   return (
     <div className="w-full min-h-[calc(100vh-5rem)] bg-[#0a0d14]">
+      {error && (
+        <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-2 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-white">Movie Dashboard</h1>
         <Link
@@ -118,7 +143,7 @@ export default function AdminDashboard() {
             {/* Movie Poster */}
             <div className="relative aspect-[2/3]">
               <Image
-                src={movie.posterUrl}
+                src={movie.posterUrl || "/placeholder-poster.svg"}
                 alt={movie.title}
                 fill
                 className="object-cover"
@@ -133,7 +158,11 @@ export default function AdminDashboard() {
                     <Edit className="w-4 h-4" />
                   </Link>
                   <button
-                    onClick={() => movie.id && handleDelete(movie.id)}
+                    onClick={() => {
+                      if (movie.id) {
+                        handleDelete(movie.id);
+                      }
+                    }}
                     disabled={deletingId === movie.id}
                     className={`p-2 text-white bg-red-600/80 rounded-full hover:bg-red-600 transition-colors ${
                       deletingId === movie.id

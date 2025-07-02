@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Head from "next/head";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Star, Globe, Tag, Shield, Home } from "lucide-react";
@@ -95,155 +94,129 @@ export default function MoviePage({
   }
 
   return (
-    <>
-      <Head>
-        <title>{`${movie.title} - CineCritic Review`}</title>
-        <meta
-          name="description"
-          content={`Read our review of ${movie.title}. Rating: ${
-            movie.rating
-          }/5. ${movie.review.slice(0, 150)}...`}
-        />
-        <meta
-          property="og:title"
-          content={`${movie.title} - CineCritic Review`}
-        />
-        <meta
-          property="og:description"
-          content={`Read our review of ${movie.title}. Rating: ${movie.rating}/5`}
-        />
-        <meta
-          property="og:image"
-          content={movie.posterUrl || "/placeholder-poster.jpg"}
-        />
-      </Head>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-[#0a0d14] py-20 px-4 md:px-6 overflow-x-hidden"
+    >
+      <div className="container mx-auto">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Movie Poster */}
+            <motion.div
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-2xl"
+            >
+              <Image
+                src={movie.posterUrl || "/placeholder-poster.jpg"}
+                alt={movie.title}
+                fill
+                className="object-cover"
+                priority
+              />
+            </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="min-h-screen bg-[#0a0d14] py-20 px-4 md:px-6 overflow-x-hidden"
-      >
-        <div className="container mx-auto">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Movie Poster */}
-              <motion.div
-                initial={{ x: -50, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-2xl"
-              >
-                <Image
-                  src={movie.posterUrl || "/placeholder-poster.jpg"}
-                  alt={movie.title}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </motion.div>
+            {/* Movie Details */}
+            <motion.div
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="md:col-span-2 space-y-6"
+            >
+              <h1 className="text-3xl md:text-4xl font-bold text-white">
+                {movie.title}
+              </h1>
 
-              {/* Movie Details */}
-              <motion.div
-                initial={{ x: 50, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="md:col-span-2 space-y-6"
-              >
-                <h1 className="text-3xl md:text-4xl font-bold text-white">
-                  {movie.title}
-                </h1>
-
-                <div className="flex flex-wrap gap-4 text-gray-300">
-                  <motion.div
-                    className="flex items-center"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                    <span className="ml-2">
-                      {movie.rating.toFixed(1)} Rating
-                    </span>
-                  </motion.div>
-                  <motion.div
-                    className="flex items-center"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                  >
-                    <Shield className="w-5 h-5 text-blue-400" />
-                    <span className="ml-2">{movie.censor} Rated</span>
-                  </motion.div>
-                </div>
-
+              <div className="flex flex-wrap gap-4 text-gray-300">
                 <motion.div
-                  className="space-y-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  <div className="flex items-start gap-2">
-                    <Globe className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
-                    <div>
-                      <div className="text-gray-400 mb-1">Languages</div>
-                      <div className="flex flex-wrap gap-2">
-                        {movie.languages.map((lang) => (
-                          <span
-                            key={lang}
-                            className="px-3 py-1 bg-gray-800 rounded-full text-sm text-gray-300"
-                          >
-                            {lang}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-2">
-                    <Tag className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
-                    <div>
-                      <div className="text-gray-400 mb-1">Genres</div>
-                      <div className="flex flex-wrap gap-2">
-                        {movie.genres.map((genre) => (
-                          <span
-                            key={genre}
-                            className="px-3 py-1 bg-blue-600/30 rounded-full text-sm text-blue-200"
-                          >
-                            {genre}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  className="pt-6"
+                  className="flex items-center"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.7 }}
+                  transition={{ delay: 0.4 }}
                 >
-                  <h2 className="text-xl font-semibold text-white mb-4">
-                    Review
-                  </h2>
-                  <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
-                    {movie.review}
-                  </p>
+                  <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                  <span className="ml-2">{movie.rating.toFixed(1)} Rating</span>
                 </motion.div>
-
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => router.back()}
-                  className="inline-flex items-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                <motion.div
+                  className="flex items-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
                 >
-                  Back to Movies
-                </motion.button>
+                  <Shield className="w-5 h-5 text-blue-400" />
+                  <span className="ml-2">{movie.censor} Rated</span>
+                </motion.div>
+              </div>
+
+              <motion.div
+                className="space-y-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <div className="flex items-start gap-2">
+                  <Globe className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
+                  <div>
+                    <div className="text-gray-400 mb-1">Languages</div>
+                    <div className="flex flex-wrap gap-2">
+                      {movie.languages.map((lang) => (
+                        <span
+                          key={lang}
+                          className="px-3 py-1 bg-gray-800 rounded-full text-sm text-gray-300"
+                        >
+                          {lang}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2">
+                  <Tag className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
+                  <div>
+                    <div className="text-gray-400 mb-1">Genres</div>
+                    <div className="flex flex-wrap gap-2">
+                      {movie.genres.map((genre) => (
+                        <span
+                          key={genre}
+                          className="px-3 py-1 bg-blue-600/30 rounded-full text-sm text-blue-200"
+                        >
+                          {genre}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </motion.div>
-            </div>
+
+              <motion.div
+                className="pt-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
+              >
+                <h2 className="text-xl font-semibold text-white mb-4">
+                  Review
+                </h2>
+                <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
+                  {movie.review}
+                </p>
+              </motion.div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => router.back()}
+                className="inline-flex items-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Back to Movies
+              </motion.button>
+            </motion.div>
           </div>
         </div>
-      </motion.div>
-    </>
+      </div>
+    </motion.div>
   );
 }

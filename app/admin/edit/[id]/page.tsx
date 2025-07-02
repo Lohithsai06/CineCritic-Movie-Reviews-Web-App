@@ -14,7 +14,6 @@ export default function EditMoviePage({
   const router = useRouter();
   const [movie, setMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [movieId, setMovieId] = useState<string>("");
 
   useEffect(() => {
     const loadMovie = async () => {
@@ -22,13 +21,11 @@ export default function EditMoviePage({
         // Await the params promise to get the actual id
         const resolvedParams = await params;
         const id = resolvedParams.id;
-        setMovieId(id);
 
         const movieData = await getMovie(id);
         setMovie(movieData);
       } catch (error) {
         console.error("Error loading movie:", error);
-        alert("Failed to load movie");
         router.push("/admin/dashboard");
       } finally {
         setIsLoading(false);
