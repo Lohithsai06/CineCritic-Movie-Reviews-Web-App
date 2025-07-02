@@ -40,8 +40,13 @@ const NotFound = () => (
       animate={{ opacity: 1, y: 0 }}
       className="text-center"
     >
-      <h1 className="text-4xl font-bold text-white mb-4">404 - Movie Not Found</h1>
-      <p className="text-gray-400 mb-8">The movie you&apos;re looking for doesn&apos;t exist or has been removed.</p>
+      <h1 className="text-4xl font-bold text-white mb-4">
+        404 - Movie Not Found
+      </h1>
+      <p className="text-gray-400 mb-8">
+        The movie you&apos;re looking for doesn&apos;t exist or has been
+        removed.
+      </p>
       <Link
         href="/"
         className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -53,7 +58,11 @@ const NotFound = () => (
   </div>
 );
 
-export default function MoviePage({ params }: { params: { id: string } }) {
+export default function MoviePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
   const [movie, setMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +71,9 @@ export default function MoviePage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const loadMovie = async () => {
       try {
-        const data = await getMovie(params.id);
+        // Await the params promise to get the actual id
+        const resolvedParams = await params;
+        const data = await getMovie(resolvedParams.id);
         setMovie(data);
       } catch (error) {
         console.error("Error loading movie:", error);
@@ -73,7 +84,7 @@ export default function MoviePage({ params }: { params: { id: string } }) {
     };
 
     loadMovie();
-  }, [params.id]);
+  }, [params]);
 
   if (isLoading) {
     return <MovieDetailSkeleton />;
@@ -87,10 +98,24 @@ export default function MoviePage({ params }: { params: { id: string } }) {
     <>
       <Head>
         <title>{`${movie.title} - CineCritic Review`}</title>
-        <meta name="description" content={`Read our review of ${movie.title}. Rating: ${movie.rating}/5. ${movie.review.slice(0, 150)}...`} />
-        <meta property="og:title" content={`${movie.title} - CineCritic Review`} />
-        <meta property="og:description" content={`Read our review of ${movie.title}. Rating: ${movie.rating}/5`} />
-        <meta property="og:image" content={movie.posterUrl || '/placeholder-poster.jpg'} />
+        <meta
+          name="description"
+          content={`Read our review of ${movie.title}. Rating: ${
+            movie.rating
+          }/5. ${movie.review.slice(0, 150)}...`}
+        />
+        <meta
+          property="og:title"
+          content={`${movie.title} - CineCritic Review`}
+        />
+        <meta
+          property="og:description"
+          content={`Read our review of ${movie.title}. Rating: ${movie.rating}/5`}
+        />
+        <meta
+          property="og:image"
+          content={movie.posterUrl || "/placeholder-poster.jpg"}
+        />
       </Head>
 
       <motion.div
@@ -109,7 +134,7 @@ export default function MoviePage({ params }: { params: { id: string } }) {
                 className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-2xl"
               >
                 <Image
-                  src={movie.posterUrl || '/placeholder-poster.jpg'}
+                  src={movie.posterUrl || "/placeholder-poster.jpg"}
                   alt={movie.title}
                   fill
                   className="object-cover"
@@ -136,7 +161,9 @@ export default function MoviePage({ params }: { params: { id: string } }) {
                     transition={{ delay: 0.4 }}
                   >
                     <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                    <span className="ml-2">{movie.rating.toFixed(1)} Rating</span>
+                    <span className="ml-2">
+                      {movie.rating.toFixed(1)} Rating
+                    </span>
                   </motion.div>
                   <motion.div
                     className="flex items-center"
@@ -196,7 +223,9 @@ export default function MoviePage({ params }: { params: { id: string } }) {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.7 }}
                 >
-                  <h2 className="text-xl font-semibold text-white mb-4">Review</h2>
+                  <h2 className="text-xl font-semibold text-white mb-4">
+                    Review
+                  </h2>
                   <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
                     {movie.review}
                   </p>
